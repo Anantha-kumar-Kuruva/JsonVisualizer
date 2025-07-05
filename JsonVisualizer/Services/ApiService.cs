@@ -5,29 +5,31 @@ namespace JsonVisualizer.Services
 {
     public class ApiService
     {
-        private static readonly HttpClient client = new();
-
         public async Task<List<TimeEntry>> FetchTimeEntriesAsync()
         {
-            string url = "https://rc-vault-fap-live-1.azurewebsites.net/api/gettimeentries?code=vO17RnE8vuzXzPJo5eaLLjXjmRW07law99QTD90zat9FfOQJKKUcgQ==";
-            var response = await client.GetStringAsync(url);
-            var jArray = JArray.Parse(response);
+            // Read from local file (exported JSON)
+            string jsonPath = "employeetimereport.json";
+            var jsonContent = await File.ReadAllTextAsync(jsonPath);
+            var jArray = JArray.Parse(jsonContent);
 
             var grouped = jArray
                 .Where(x =>
                 {
-                    DateTime start = DateTime.Parse(x["starTimeUtc"]!.ToString());
-                    DateTime end = DateTime.Parse(x["endTimeUtc"]!.ToString());
-                    return end > start;
+                    var startStr = x["StarTimeUtc"]?.ToString();
+                    var endStr = x["EndTimeUtc"]?.ToString();
+                    if (DateTime.TryParse(startStr, out var start) && DateTime.TryParse(endStr, out var end))
+                        return end > start;
+                    return false;
                 })
-                .GroupBy(x => x["employeeName"]?.ToString())
+                .GroupBy(x => x["EmployeeName"]?.ToString())
+                .Where(g => !string.IsNullOrWhiteSpace(g.Key))
                 .Select(g => new TimeEntry
                 {
-                    EmployeeName = g.Key,
+                    EmployeeName = g.Key!,
                     TimeWorked = g.Sum(x =>
                     {
-                        DateTime start = DateTime.Parse(x["starTimeUtc"]!.ToString());
-                        DateTime end = DateTime.Parse(x["endTimeUtc"]!.ToString());
+                        DateTime start = DateTime.Parse(x["StarTimeUtc"]!.ToString());
+                        DateTime end = DateTime.Parse(x["EndTimeUtc"]!.ToString());
                         return (end - start).TotalHours;
                     })
                 })
