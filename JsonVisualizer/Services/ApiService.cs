@@ -14,11 +14,22 @@ namespace JsonVisualizer.Services
             var jArray = JArray.Parse(response);
 
             var grouped = jArray
+                .Where(x =>
+                {
+                    DateTime start = DateTime.Parse(x["starTimeUtc"]!.ToString());
+                    DateTime end = DateTime.Parse(x["endTimeUtc"]!.ToString());
+                    return end > start;
+                })
                 .GroupBy(x => x["employeeName"]?.ToString())
                 .Select(g => new TimeEntry
                 {
                     EmployeeName = g.Key,
-                    TimeWorked = g.Sum(x => (double?)x["timeWorked"] ?? 0)
+                    TimeWorked = g.Sum(x =>
+                    {
+                        DateTime start = DateTime.Parse(x["starTimeUtc"]!.ToString());
+                        DateTime end = DateTime.Parse(x["endTimeUtc"]!.ToString());
+                        return (end - start).TotalHours;
+                    })
                 })
                 .OrderByDescending(e => e.TimeWorked)
                 .ToList();
