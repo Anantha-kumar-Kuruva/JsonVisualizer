@@ -7,8 +7,7 @@ namespace JsonVisualizer.Services
     {
         public async Task<List<TimeEntry>> FetchTimeEntriesAsync()
         {
-            // Read from local file (exported JSON)
-            string jsonPath = "employeetimereport.json";
+            string jsonPath = "employeetimereport.json"; // Local file instead of API
             var jsonContent = await File.ReadAllTextAsync(jsonPath);
             var jArray = JArray.Parse(jsonContent);
 
