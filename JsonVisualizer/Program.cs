@@ -9,7 +9,8 @@ class Program
 
         HtmlRenderer.GenerateHtml(entries);
         PieChartGenerator.GeneratePieChart(entries);
+        CsvExporter.ExportToCsv(entries);
 
-        Console.WriteLine("HTML and PNG generated in Output/ folder.");
+        Console.WriteLine("✅ report.html, piechart.png, and summary.csv generated in Output/ folder.");
     }
 }
